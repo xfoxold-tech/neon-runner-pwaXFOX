@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Neon Runner</title>
+
+  <!-- Манифест прямо внутри -->
+  <link rel="manifest" href="data:application/json,{ 
+    'name':'Neon Runner',
+    'short_name':'Runner',
+    'start_url':'.',
+    'display':'standalone',
+    'background_color':'%23000000',
+    'theme_color':'%2300ffff',
+    'icons':[ 
+      {'src':'https://via.placeholder.com/192.png?text=NR','sizes':'192x192','type':'image/png'},
+      {'src':'https://via.placeholder.com/512.png?text=NR','sizes':'512x512','type':'image/png'}
+    ]
+  }">
+
+  <style>
+    html,body {margin:0;padding:0;background:black;overflow:hidden;}
+    #gameCanvas {display:block;margin:auto;background:#111;}
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let player = { x: 50, y: canvas.height - 100, w: 50, h: 50, vy: 0, jumping: false };
+    let gravity = 0.8;
+    let enemies = [];
+    let score = 0;
+
+    function spawnEnemy() {
+      enemies.push({ x: canvas.width, y: canvas.height - 100, w: 50, h: 50 });
+    }
+    setInterval(spawnEnemy, 2000);
+
+    function update() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // Player
+      player.vy += gravity;
+      player.y += player.vy;
+      if (player.y > canvas.height - 100) {
+        player.y = canvas.height - 100;
+        player.vy = 0;
+        player.jumping = false;
+      }
+      ctx.fillStyle = "cyan";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      // Enemies
+      ctx.fillStyle = "magenta";
+      enemies.forEach((e,i) => {
+        e.x -= 5;
+        ctx.fillRect(e.x,e.y,e.w,e.h);
+        if (player.x < e.x+e.w && player.x+player.w > e.x && player.y < e.y+e.h && player.y+player.h > e.y) {
+          alert("Game Over! Score: " + score);
+          document.location.reload();
+        }
+        if (e.x+e.w < 0) {
+          enemies.splice(i,1);
+          score++;
+        }
+      });
+
+      // Score
+      ctx.fillStyle="white";
+      ctx.font="20px Arial";
+      ctx.fillText("Score: "+score,20,30);
+
+      requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", e=>{
+      if(e.code==="Space" && !player.jumping){
+        player.vy=-15;
+        player.jumping=true;
+      }
+    });
+
+    update();
+  </script>
+</body>
+</html>
